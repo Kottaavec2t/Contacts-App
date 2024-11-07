@@ -35,7 +35,7 @@ class ContactApp(QMainWindow):
         
         #First Name
         self.firstname_input = QLineEdit()
-        self.firstname_input.setPlaceholderText("Name")
+        self.firstname_input.setPlaceholderText("First Name")
         self.layout_principal.addWidget(self.firstname_input)
 
         #Name
@@ -44,6 +44,9 @@ class ContactApp(QMainWindow):
         self.layout_principal.addWidget(self.name_input)
 
         #Phone Number
+        self.phone_number_layout = QVBoxLayout()
+        self.layout_principal.addLayout(self.phone_number_layout)
+
         self.phone_number_input = QLineEdit()
         self.phone_number_input.setPlaceholderText("Phone Number")
         self.layout_principal.addWidget(self.phone_number_input)
@@ -51,9 +54,16 @@ class ContactApp(QMainWindow):
         #Email
         self.email_layout = QVBoxLayout()
         self.layout_principal.addLayout(self.email_layout)
+
+        self.remove_email_button = QPushButton("Remove Email")
+        self.remove_email_button.clicked.connect(self._remove_email)
+
+        self.add_email_button = QPushButton("Add Email")
+        self.add_email_button.clicked.connect(self._add_email)
+        self.email_layout.addWidget(self.add_email_button)
+
         self.email_input = QLineEdit()
-        self.email_input.setPlaceholderText("Email Adress")
-        self.layout_principal.addWidget(self.email_input)
+        self.email_input.setPlaceholderText("you@example.com")
 
         #Birth Date
         self.birthdate_layout = QVBoxLayout()
@@ -62,13 +72,13 @@ class ContactApp(QMainWindow):
         self.dateedit = QDateEdit()
 
         self.remove_birthdate_button = QPushButton("Remove Birth Date")
-        self.remove_birthdate_button.clicked.connect(self.remove_birthdate)
+        self.remove_birthdate_button.clicked.connect(self._remove_birthdate)
 
         self.add_birthdate_button = QPushButton("Add Birth Date")
-        self.add_birthdate_button.clicked.connect(self.add_birthdate)
+        self.add_birthdate_button.clicked.connect(self._add_birthdate)
         self.birthdate_layout.addWidget(self.add_birthdate_button)
 
-        #Ad Contact
+        #Add Contact
         self.add_button = QPushButton("Add Contact")
         self.add_button.clicked.connect(self.add_contact)
         self.layout_principal.addWidget(self.add_button)
@@ -77,21 +87,48 @@ class ContactApp(QMainWindow):
         container.setLayout(self.layout_principal)
         self.setCentralWidget(container)
 
-    def remove_birthdate(self):
+    def _remove_email(self):
+
+        self.email_layout.removeWidget(self.email_input)
+        self.email_input.deleteLater()
+        self.email_input = QLineEdit()
+        self.email_input.setPlaceholderText("you@example.com")
+        
+        self.email_layout.removeWidget(self.remove_email_button)
+        self.remove_email_button.deleteLater()
+        self.remove_email_button = QPushButton("Remove Email")
+        self.remove_email_button.clicked.connect(self._remove_email)
+
+        self.email_layout.addWidget(self.add_email_button)
+
+    def _add_email(self):
+
+        self.email_layout.removeWidget(self.add_email_button)
+        self.add_email_button.deleteLater()
+        self.add_email_button = QPushButton("Add Email")
+        self.add_email_button.clicked.connect(self._add_email)
+
+        self.email_layout.addWidget(self.email_input)
+        self.email_layout.addWidget(self.remove_email_button)
+
+    def _remove_birthdate(self):
          self.birthdate_layout.removeWidget(self.remove_birthdate_button)
          self.remove_birthdate_button.deleteLater()
          self.remove_birthdate_button = QPushButton("Remove Birth Date")
-         self.remove_birthdate_button.clicked.connect(self.remove_birthdate)
+         self.remove_birthdate_button.clicked.connect(self._remove_birthdate)
+
          self.birthdate_layout.removeWidget(self.dateedit)
          self.dateedit.deleteLater()
          self.dateedit = QDateEdit()
+
          self.birthdate_layout.addWidget(self.add_birthdate_button)
 
-    def add_birthdate(self):
+    def _add_birthdate(self):
          self.birthdate_layout.removeWidget(self.add_birthdate_button)
          self.add_birthdate_button.deleteLater()
          self.add_birthdate_button = QPushButton("Add Birth Date")
-         self.add_birthdate_button.clicked.connect(self.add_birthdate)
+         self.add_birthdate_button.clicked.connect(self._add_birthdate)
+
          self.birthdate_layout.addWidget(self.dateedit)
          self.birthdate_layout.addWidget(self.remove_birthdate_button)
 
