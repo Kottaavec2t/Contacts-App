@@ -3,27 +3,42 @@ import sqlite3
 import datetime
 from PyQt5.QtWidgets import *
 
+# ===========================================================================================================
+#                               CONNECTION A LA BASE DE DONNEE "contacts.db"
+# ===========================================================================================================
+
+
 def create_connection():
     conn = sqlite3.connect("contacts.db")
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS contacts (
             id INT,
-            first_name STR,
+            firstname STR,
             name STR,
             phone_number STR,
-            email_adress STR,
+            email STR,
             birthdate INT
         )
     ''')
     conn.commit()
     return conn
 
+
+# ===========================================================================================================
+#                                           CLASS ContactApp
+# ===========================================================================================================
+
+
 class ContactApp(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.visible = True
+
+        # ===========================================================================================================
+        #                               INITIALISATION DE LA ZONE D'AJOUT D'UN CONTACT
+        # ===========================================================================================================
+
 
         self.conn = create_connection()
         self.setWindowTitle("Contacts")
@@ -87,6 +102,12 @@ class ContactApp(QMainWindow):
         container.setLayout(self.layout_principal)
         self.setCentralWidget(container)
 
+
+    # ===========================================================================================================
+    #                                               FONCTIONS
+    # ===========================================================================================================
+
+
     def _remove_email(self):
 
         self.email_layout.removeWidget(self.email_input)
@@ -133,10 +154,26 @@ class ContactApp(QMainWindow):
          self.birthdate_layout.addWidget(self.remove_birthdate_button)
 
     def add_contact(self):
+        firstname = self.firstname_input.text()
         name = self.name_input.text()
         phone_number = self.phone_number_input.text()
-        email_adress = self.email_input.text()
+        email = self.email_input.text()
+        birthdate = self.dateedit.date().toPyDate()
 
+        if firstname != " " and phone_number != " ":
+            cursor = self.conn.cursor()
+            cursor.execute("INSERT INTO contacts (firstname, name, phone_number, email, birthdate) VALUES (?, ?, ?, ?, ?)", (firstname, name, phone_number, email, birthdate))
+            self.conn.commit()
+            QMessageBox.information(self, "Succes !", f"Succefully add {firstname} {name} to your contacts.")
+            self.firstname_input.clear()
+            self.name_input.clear()
+            self.phone_number_input.clear()
+            self._remove_email()
+            self._remove_birthdate()
+            self.load_contacts()
+        else:
+             if phone_number != "": QMessageBox.warning(self, "Error", "You need to enter a First Name")
+             elif firstname != "": QMessageBox.warning(self, "Error", "You need to enter a Phone Number")
         self.load_contacts()
     
     def delete_contact(self):
