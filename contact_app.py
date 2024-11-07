@@ -3,8 +3,6 @@ import sqlite3
 import datetime
 from PyQt5.QtWidgets import *
 
-
-
 def create_connection():
     conn = sqlite3.connect("contacts.db")
     cursor = conn.cursor()
