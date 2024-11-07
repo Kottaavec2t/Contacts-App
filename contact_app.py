@@ -78,27 +78,27 @@ class ContactApp(QMainWindow):
         self.setCentralWidget(container)
 
     def remove_birthdate(self):
-         self.birth_date_layout.removeWidget(self.remove_birthdate_button)
+         self.birthdate_layout.removeWidget(self.remove_birthdate_button)
          self.remove_birthdate_button.deleteLater()
          self.remove_birthdate_button = QPushButton("Remove Birth Date")
          self.remove_birthdate_button.clicked.connect(self.remove_birthdate)
-         self.birth_date_layout.removeWidget(self.dateedit)
+         self.birthdate_layout.removeWidget(self.dateedit)
          self.dateedit.deleteLater()
          self.dateedit = QDateEdit()
-         self.birth_date_layout.addWidget(self.add_birthdate_button)
+         self.birthdate_layout.addWidget(self.add_birthdate_button)
 
     def add_birthdate(self):
-         self.birth_date_layout.removeWidget(self.add_birthdate_button)
+         self.birthdate_layout.removeWidget(self.add_birthdate_button)
          self.add_birthdate_button.deleteLater()
          self.add_birthdate_button = QPushButton("Add Birth Date")
          self.add_birthdate_button.clicked.connect(self.add_birthdate)
-         self.birth_date_layout.addWidget(self.dateedit)
-         self.birth_date_layout.addWidget(self.remove_birthdate_button)
+         self.birthdate_layout.addWidget(self.dateedit)
+         self.birthdate_layout.addWidget(self.remove_birthdate_button)
 
     def add_contact(self):
         name = self.name_input.text()
         phone_number = self.phone_number_input.text()
-        email_adress = self.email_adress_input.text()
+        email_adress = self.email_input.text()
 
         self.load_contacts()
     
