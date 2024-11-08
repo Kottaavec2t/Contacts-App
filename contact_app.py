@@ -26,7 +26,7 @@ def create_connection():
 
 
 # ===========================================================================================================
-#                                           CLASS ContactApp
+#                                          ContactApp() CLASS
 # ===========================================================================================================
 
 
@@ -42,16 +42,16 @@ class ContactApp(QMainWindow):
 
         self.conn = create_connection()
         self.setWindowTitle("Contacts")
-        self.setGeometry(300, 200, 400, 400)
-        self.setMaximumSize(400, 400)
-        self.setMinimumSize(400, 400)
+        self.setGeometry(300, 200, 400, 600)
+        self.setMaximumSize(400, 600)
+        self.setMinimumSize(400, 600)
 
         self.layout_principal = QVBoxLayout()
         
         #First Name
         self.firstname_input = QLineEdit()
         self.firstname_input.setPlaceholderText("First Name")
-        self.layout_principal.addWidget(self.firstname_input)
+        self.layout_principal.addWidget(self.firstname_input, 1)
 
         #Name
         self.name_input = QLineEdit()
@@ -92,6 +92,11 @@ class ContactApp(QMainWindow):
         self.add_birthdate_button = QPushButton("Add Birth Date")
         self.add_birthdate_button.clicked.connect(self._add_birthdate)
         self.birthdate_layout.addWidget(self.add_birthdate_button)
+
+        #Notes
+        self.text_box = QTextEdit()
+        self.text_box.setPlaceholderText("Notes")
+        self.layout_principal.addWidget(self.text_box)
 
         #Add Contact
         self.add_button = QPushButton("Add Contact")
@@ -156,11 +161,30 @@ class ContactApp(QMainWindow):
     def add_contact(self):
         firstname = self.firstname_input.text()
         name = self.name_input.text()
-        phone_number = self.phone_number_input.text()
-        email = self.email_input.text()
-        birthdate = self.dateedit.date().toPyDate()
 
-        if firstname != " " and phone_number != " ":
+        #Checking if phone number is correct
+        phone_number = ""
+        for i in list(self.phone_number_input.text()):
+            try:
+                i = int(i)
+                phone_number += str(i)
+            except:
+                phone_number = None
+                break
+        if phone_number[0] != "0":
+            phone_number = None
+        if len(phone_number) != 10:
+            phone_number = None
+
+        email = self.email_input.text()
+
+        #Remove the birthdate if ther is no self.dateedit()
+        birthdate = self.dateedit.date().toPyDate()
+        widget = self.birthdate_layout.itemAt(self.birthdate_layout.count()-1)
+        if not widget:
+             birthdate = None
+
+        if firstname != "" and phone_number != None:
             cursor = self.conn.cursor()
             cursor.execute("INSERT INTO contacts (firstname, name, phone_number, email, birthdate) VALUES (?, ?, ?, ?, ?)", (firstname, name, phone_number, email, birthdate))
             self.conn.commit()
@@ -172,9 +196,8 @@ class ContactApp(QMainWindow):
             self._remove_birthdate()
             self.load_contacts()
         else:
-             if phone_number != "": QMessageBox.warning(self, "Error", "You need to enter a First Name")
-             elif firstname != "": QMessageBox.warning(self, "Error", "You need to enter a Phone Number")
-        self.load_contacts()
+             if firstname == "": QMessageBox.warning(self, "Missing First Name", "You forgot to enter a first name.")
+             elif phone_number != None: QMessageBox.warning(self, "Invalid Phone Number", "Please check if the phone number is write correctly.")
     
     def delete_contact(self):
          pass
@@ -187,7 +210,7 @@ class ContactApp(QMainWindow):
          contacts = cursor.fetchall()
 
          for contact in contacts:
-              self.contact_list.addItem(f"{contact[1]} - {contact[2]}")
+              self.contact_list.addItem(f"{contact[1]} {contact[2]}\n0{contact[3]}\n{contact[4]}\n{contact[5]}")
         
          self.layout_principal.addWidget(self.contact_list)
     def closeEvent(self, event):
