@@ -47,6 +47,14 @@ class ContactApp(QMainWindow):
         self.setMinimumSize(400, 600)
 
         self.layout_principal = QVBoxLayout()
+
+        self.load_contacts()
+
+        container = QWidget()
+        container.setLayout(self.layout_principal)
+        self.setCentralWidget(container)
+
+    def add_contact_menu(self):
         
         #First Name
         self.firstname_input = QLineEdit()
@@ -98,15 +106,16 @@ class ContactApp(QMainWindow):
         self.text_box.setPlaceholderText("Notes")
         self.layout_principal.addWidget(self.text_box)
 
-        #Add Contact
+        #Add Contact Button
         self.add_button = QPushButton("Add Contact")
         self.add_button.clicked.connect(self.add_contact)
         self.layout_principal.addWidget(self.add_button)
 
-        container = QWidget()
-        container.setLayout(self.layout_principal)
-        self.setCentralWidget(container)
-
+        #Remove New Contact Button and Contacts List
+        self.layout_principal.removeWidget(self.new_contact_button)
+        self.new_contact_button.deleteLater()
+        self.layout_principal.removeWidget(self.contact_list)
+        self.contact_list.deleteLater()
 
     # ===========================================================================================================
     #                                               FONCTIONS
@@ -213,6 +222,9 @@ class ContactApp(QMainWindow):
               self.contact_list.addItem(f"{contact[1]} {contact[2]}\n0{contact[3]}\n{contact[4]}\n{contact[5]}")
         
          self.layout_principal.addWidget(self.contact_list)
+         self.new_contact_button = QPushButton("+ New Contact")
+         self.new_contact_button.clicked.connect(self.add_contact_menu)
+         self.layout_principal.addWidget(self.new_contact_button)
     def closeEvent(self, event):
             self.conn.close()
             event.accept()
