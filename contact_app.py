@@ -21,7 +21,7 @@ def create_connection():
             name TEXT NOT NULL,
             phone_number STR,
             email STR,
-            birthdate DATE
+            birthdate DATE,
             notes STR
         )
     ''')
@@ -198,7 +198,7 @@ class ContactApp(QMainWindow):
 
         if firstname != "" and phone_number != None:
             cursor = self.conn.cursor()
-            cursor.execute("INSERT INTO contacts (firstname, name, phone_number, email, birthdate, notes) VALUES (?, ?, ?, ?, ?)", (firstname, name, phone_number, email, birthdate, notes))
+            cursor.execute("INSERT INTO contacts (firstname, name, phone_number, email, birthdate, notes) VALUES (?, ?, ?, ?, ?, ?)", (firstname, name, phone_number, email, birthdate, notes))
             self.conn.commit()
             QMessageBox.information(self, "Succes !", f"Succefully add {firstname} {name} to your contacts.")
             self.firstname_input.clear()
@@ -286,6 +286,12 @@ class ContactApp(QMainWindow):
             self.add_birthdate_button = QPushButton("Add Birth Date")
             self.add_birthdate_button.clicked.connect(self.add_birthdate)
             self.birthdate_layout.addWidget(self.add_birthdate_button)
+
+        #Notes
+        self.text_box = QTextEdit()
+        self.text_box.setPlaceholderText("Notes")
+        self.text_box.setText(contact[6])
+        self.layout_principal.addWidget(self.text_box)
 
         # Save Changes Button
         self.save_changes_button = QPushButton("Save Changes")
