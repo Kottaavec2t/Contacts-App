@@ -6,12 +6,13 @@ from PyQt5 import sip
 from PyQt5.QtCore import Qt
 
 
-def create_connection():
-
-    '''function to connect to the database or create one if not exist.
-
-    :return: Connection
+def createConnection():
     '''
+    Function to connect to the database or create one if not exist.
+
+    :return: `Connection`
+    '''
+
     conn = sqlite3.connect("contacts.db")
     cursor = conn.cursor()
     cursor.execute('''
@@ -28,9 +29,25 @@ def create_connection():
     conn.commit()
     return conn
 
+def hideAllWidgetLayout(cur_lay):
+    '''
+    Function to hide all widgets in the given layout.
+
+    :param cur_lay: QLayout(), the layout containing the widgets to hide.
+    :return: None
+    '''
+    if cur_lay is not None:
+        for i in range(cur_lay.count()):
+            item = cur_lay.itemAt(i)
+            widget = item.widget()
+            if widget is not None:
+                widget.hide()
+            elif item.layout() is not None:
+                hideAllWidgetLayout(item.layout())
+
 
 # ===========================================================================================================
-#                                          ContactApp() CLASS
+#                                          MAIN CLASS
 # ===========================================================================================================
 
 
@@ -40,7 +57,7 @@ class ContactApp(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.conn = create_connection()
+        self.conn = createConnection()
         self.setWindowTitle("Contacts")
         self.setGeometry(300, 200, 400, 600)
         self.setMaximumSize(400, 600)
@@ -48,11 +65,110 @@ class ContactApp(QMainWindow):
 
         self.layout_principal = QVBoxLayout()
 
-        self.load_contacts()
-
         container = QWidget()
         container.setLayout(self.layout_principal)
         self.setCentralWidget(container)
+
+
+        # ===========================================================================================================
+        #              CREATE ALL THE WIDGETS AND HIDE THEM (BE SURE THERE ARE IN THE ORDER YOU WANT)
+        # ===========================================================================================================
+        
+
+        #------------------------Contact List------------------------
+        self.contact_list = QListWidget()
+        self.layout_principal.addWidget(self.contact_list)
+        self.contact_list.hide()
+
+        #------------------------First Name Input------------------------
+        self.firstname_input = QLineEdit()
+        self.firstname_input.setPlaceholderText("First Name")
+        self.layout_principal.addWidget(self.firstname_input)
+        self.firstname_input.hide()
+
+        #------------------------Last Name Input------------------------
+        self.lastname_input = QLineEdit()
+        self.lastname_input.setPlaceholderText("Name")
+        self.layout_principal.addWidget(self.lastname_input)
+        self.lastname_input.hide()
+
+        #------------------------Phone Number Input------------------------
+        self.phone_number_input = QLineEdit()
+        self.phone_number_input.setPlaceholderText("Phone Number")
+        self.layout_principal.addWidget(self.phone_number_input)
+        self.phone_number_input.hide()
+
+        #------------------------Email Input------------------------
+        self.email_input = QLineEdit()
+        self.email_input.setPlaceholderText("you@example.com")
+        self.layout_principal.addWidget(self.email_input)
+        self.email_input.hide()
+
+        #------------------------Remove Email Button------------------------
+        self.remove_email_button = QPushButton("Remove Email")
+        self.remove_email_button.clicked.connect(lambda: self.changeVisibilityOfOptionalOption('email', False))
+        self.layout_principal.addWidget(self.remove_email_button)
+        self.remove_email_button.hide()
+
+        #------------------------Add Email Button------------------------
+        self.add_email_button = QPushButton("Add Email")
+        self.add_email_button.clicked.connect(lambda: self.changeVisibilityOfOptionalOption('email', True))
+        self.layout_principal.addWidget(self.add_email_button)
+        self.add_email_button.hide()
+
+        #------------------------Birthdate Input------------------------
+        self.birthdate_dateedit = QDateEdit()
+        self.layout_principal.addWidget(self.birthdate_dateedit)
+        self.birthdate_dateedit.hide()
+
+        #------------------------Remove Birthdate Button------------------------
+        self.remove_birthdate_button = QPushButton("Remove Birth Date")
+        self.remove_birthdate_button.clicked.connect(lambda: self.changeVisibilityOfOptionalOption('birthdate', False))
+        self.layout_principal.addWidget(self.remove_birthdate_button)
+        self.remove_birthdate_button.hide()
+
+        #------------------------Add Birthdate Button------------------------
+        self.add_birthdate_button = QPushButton("Add Birth Date")
+        self.add_birthdate_button.clicked.connect(lambda: self.changeVisibilityOfOptionalOption('birthdate', True))
+        self.layout_principal.addWidget(self.add_birthdate_button)
+        self.add_birthdate_button.hide()
+        
+        #------------------------Notes Input------------------------
+        self.notes_input = QTextEdit()
+        self.notes_input.setPlaceholderText("Notes")
+        self.layout_principal.addWidget(self.notes_input)
+        self.notes_input.hide()
+
+        #------------------------Add Contact Button------------------------
+        self.add_button = QPushButton("✅ Add Contact")
+        self.add_button.clicked.connect(self.addContact)
+        self.layout_principal.addWidget(self.add_button)
+        self.add_button.hide()
+
+        #------------------------New Contact Button------------------------
+        self.save_changes_button = QPushButton("💾 Save Changes")
+        self.layout_principal.addWidget(self.save_changes_button)
+        self.save_changes_button.hide()
+
+        #------------------------Edit Contact Button------------------------
+        self.edit_contact_button = QPushButton("✏️ Edit Contact")
+        self.edit_contact_button.clicked.connect(self.editContact)
+        self.layout_principal.addWidget(self.edit_contact_button)
+        self.save_changes_button.hide()
+
+        #------------------------New Contact Button------------------------
+        self.new_contact_button = QPushButton("➕ New Contact")
+        self.new_contact_button.clicked.connect(self.addContactMenu)
+        self.layout_principal.addWidget(self.new_contact_button)
+        self.save_changes_button.hide()
+
+        #------------------------Cancel Button------------------------
+        self.cancel_button = QPushButton("❌ Cancel")
+        self.cancel_button.clicked.connect(self.loadContacts)
+        self.layout_principal.addWidget(self.cancel_button)
+        self.cancel_button.hide()
+
+        self.loadContacts()
 
 
     # ===========================================================================================================
@@ -60,127 +176,47 @@ class ContactApp(QMainWindow):
     # ===========================================================================================================
 
 
-    def add_contact_menu(self):
+    def addContactMenu(self):
         
-        #First Name
-        self.firstname_input = QLineEdit()
-        self.firstname_input.setPlaceholderText("First Name")
-        self.layout_principal.addWidget(self.firstname_input, 1)
+        self.firstname_input.show()
+        self.lastname_input.show()
+        self.phone_number_input.show()
+        self.add_birthdate_button.show()
+        self.add_email_button.show()
+        self.notes_input.show()
+        self.add_button.show()
+        self.cancel_button.show()
 
-        #Name
-        self.name_input = QLineEdit()
-        self.name_input.setPlaceholderText("Name")
-        self.layout_principal.addWidget(self.name_input)
+        self.new_contact_button.hide()
+        self.edit_contact_button.hide()
+        self.contact_list.hide()
 
-        #Phone Number
-        self.phone_number_layout = QVBoxLayout()
-        self.layout_principal.addLayout(self.phone_number_layout)
+    def changeVisibilityOfOptionalOption(self, field_type, visible):
+        '''
+        Function to change the visiblility of the field type define in input.
 
-        self.phone_number_input = QLineEdit()
-        self.phone_number_input.setPlaceholderText("Phone Number")
-        self.layout_principal.addWidget(self.phone_number_input)
+        :param: `field_type`, str, 'email' or 'birthdate' depend of the option you want to change the visibility.
+        :param: `visible`, bool, True if you want to see the input or False if not.
+        :return: `None`
+        '''
 
-        #Email
-        self.email_layout = QVBoxLayout()
-        self.layout_principal.addLayout(self.email_layout)
+        if field_type == 'email':
+            self.email_input.setVisible(visible)
+            self.remove_email_button.setVisible(visible)
+            self.add_email_button.setVisible(not visible)
 
-        self.remove_email_button = QPushButton("Remove Email")
-        self.remove_email_button.clicked.connect(self.remove_email)
+        if field_type == 'birthdate':
+            self.birthdate_dateedit.setVisible(visible)
+            self.remove_birthdate_button.setVisible(visible)
+            self.add_birthdate_button.setVisible(not visible)
 
-        self.add_email_button = QPushButton("Add Email")
-        self.add_email_button.clicked.connect(self.add_email)
-        self.email_layout.addWidget(self.add_email_button)
-
-        self.email_input = QLineEdit()
-        self.email_input.setPlaceholderText("you@example.com")
-
-        #Birth Date
-        self.birthdate_layout = QVBoxLayout()
-        self.layout_principal.addLayout(self.birthdate_layout)
-        
-        self.dateedit = QDateEdit()
-
-        self.remove_birthdate_button = QPushButton("Remove Birth Date")
-        self.remove_birthdate_button.clicked.connect(self.remove_birthdate)
-
-        self.add_birthdate_button = QPushButton("Add Birth Date")
-        self.add_birthdate_button.clicked.connect(self.add_birthdate)
-        self.birthdate_layout.addWidget(self.add_birthdate_button)
-
-        #Notes
-        self.text_box = QTextEdit()
-        self.text_box.setPlaceholderText("Notes")
-        self.layout_principal.addWidget(self.text_box)
-
-        #Add Contact Button
-        self.add_button = QPushButton("Add Contact")
-        self.add_button.clicked.connect(self.add_contact)
-        self.layout_principal.addWidget(self.add_button)
-
-        #Remove New Contact Button and Contacts List and Edit Contact Button
-        self.layout_principal.removeWidget(self.new_contact_button)
-        self.new_contact_button.deleteLater()
-        self.layout_principal.removeWidget(self.edit_contact_button)
-        self.edit_contact_button.deleteLater()
-        self.layout_principal.removeWidget(self.contact_list)
-        self.contact_list.deleteLater()
-
-
-    def remove_email(self):
-
-        self.email_layout.removeWidget(self.email_input)
-        self.email_input.deleteLater()
-        self.email_input = QLineEdit()
-        self.email_input.setPlaceholderText("you@example.com")
-        
-        self.email_layout.removeWidget(self.remove_email_button)
-        self.remove_email_button.deleteLater()
-        self.remove_email_button = QPushButton("Remove Email")
-        self.remove_email_button.clicked.connect(self.remove_email)
-
-        self.email_layout.addWidget(self.add_email_button)
-
-    def add_email(self):
-
-        self.email_layout.removeWidget(self.add_email_button)
-        self.add_email_button.deleteLater()
-        self.add_email_button = QPushButton("Add Email")
-        self.add_email_button.clicked.connect(self.add_email)
-
-        self.email_layout.addWidget(self.email_input)
-        self.email_layout.addWidget(self.remove_email_button)
-
-
-    def remove_birthdate(self):
-         self.birthdate_layout.removeWidget(self.remove_birthdate_button)
-         self.remove_birthdate_button.deleteLater()
-         self.remove_birthdate_button = QPushButton("Remove Birth Date")
-         self.remove_birthdate_button.clicked.connect(self.remove_birthdate)
-
-         self.birthdate_layout.removeWidget(self.dateedit)
-         self.dateedit.deleteLater()
-         self.dateedit = QDateEdit()
-
-         self.birthdate_layout.addWidget(self.add_birthdate_button)
-
-    def add_birthdate(self):
-         self.birthdate_layout.removeWidget(self.add_birthdate_button)
-         self.add_birthdate_button.deleteLater()
-         self.add_birthdate_button = QPushButton("Add Birth Date")
-         self.add_birthdate_button.clicked.connect(self.add_birthdate)
-
-         self.dateedit = QDateEdit()
-         self.birthdate_layout.addWidget(self.dateedit)
-         self.birthdate_layout.addWidget(self.remove_birthdate_button)
-
-
-    def add_contact(self):
+    def addContact(self):
         firstname = self.firstname_input.text()
-        name = self.name_input.text()
+        name = self.lastname_input.text()
         phone_number = self.phone_number_input.text().strip()
         email = self.email_input.text().strip()
-        birthdate = None if not self.dateedit.isVisible() else self.dateedit.date().toPyDate()
-        notes = self.text_box.toPlainText()
+        birthdate = None if not self.birthdate_dateedit.isVisible() else self.birthdate_dateedit.date().toPyDate()
+        notes = self.notes_input.toPlainText()
 
         #Validate fields
         if not firstname:
@@ -191,27 +227,26 @@ class ContactApp(QMainWindow):
             QMessageBox.warning(self, "Input Error", "Invalid phone number format.")
             return
         
-        #Remove the birthdate if self.dateedit() is'nt visible
-        birthdate = self.dateedit.date().toPyDate()
-        if not self.dateedit.isVisible():
+        #Remove the birthdate if self.birthdate_dateedit() is'nt visible
+        birthdate = self.birthdate_dateedit.date().toPyDate()
+        if not self.birthdate_dateedit.isVisible():
              birthdate = 0
 
-        if firstname != "" and phone_number != None:
-            cursor = self.conn.cursor()
-            cursor.execute("INSERT INTO contacts (firstname, name, phone_number, email, birthdate, notes) VALUES (?, ?, ?, ?, ?, ?)", (firstname, name, phone_number, email, birthdate, notes))
-            self.conn.commit()
-            QMessageBox.information(self, "Succes !", f"Succefully add {firstname} {name} to your contacts.")
-            self.firstname_input.clear()
-            self.name_input.clear()
-            self.phone_number_input.clear()
-            self.remove_email()
-            self.remove_birthdate()
-            self.load_contacts()
-        else:
-             if firstname == "": QMessageBox.warning(self, "Missing First Name", "You forgot to enter a first name.")
-             elif phone_number != None: QMessageBox.warning(self, "Invalid Phone Number", "Please check if the phone number is write correctly.")
+        
+        cursor = self.conn.cursor()
+        cursor.execute("INSERT INTO contacts (firstname, name, phone_number, email, birthdate, notes) VALUES (?, ?, ?, ?, ?, ?)", 
+                       (firstname, name, phone_number, email, birthdate, notes)
+                       )
+        self.conn.commit()
+        QMessageBox.information(self, "Succes !", f"Succefully add {firstname} {name} to your contacts.")
+        self.firstname_input.clear()
+        self.lastname_input.clear()
+        self.phone_number_input.clear()
+        self.changeVisibilityOfOptionalOption('email', False)
+        self.changeVisibilityOfOptionalOption('birthdate', False)
+        self.loadContacts()
     
-    def edit_contact(self):
+    def editContact(self):
 
         #Get the selected item
         item = self.contact_list.currentItem()
@@ -230,87 +265,44 @@ class ContactApp(QMainWindow):
             QMessageBox.critical(self, "Error", "Failed to find contact in the database!")
             return
 
-        #Clear main layout and create edit form
-        self.clear_layout(self.layout_principal)
+        #Clear main layout
+        hideAllWidgetLayout(self.layout_principal)
 
-        #First Name
-        self.firstname_input = QLineEdit()
-        self.firstname_input.setPlaceholderText("First Name")
         self.firstname_input.setText(contact[1])
-        self.layout_principal.addWidget(self.firstname_input)
+        self.firstname_input.show()
 
-        #Name
-        self.name_input = QLineEdit()
-        self.name_input.setPlaceholderText("Last Name")
-        self.name_input.setText(contact[2])
-        self.layout_principal.addWidget(self.name_input)
+        self.lastname_input.setText(contact[2])
+        self.lastname_input.show()
 
-        #Phone Number
-        self.phone_number_input = QLineEdit()
-        self.phone_number_input.setPlaceholderText("Phone Number")
-        phone_number_text = f"0{str(contact[3])}"
-        self.phone_number_input.setText(phone_number_text)
-        self.layout_principal.addWidget(self.phone_number_input)
+        self.phone_number_input.setText(f"0{str(contact[3])}")
+        self.phone_number_input.show()
 
-        #Email
-        self.email_input = QLineEdit()
-        self.email_input.setPlaceholderText("Email")
         self.email_input.setText(contact[4] if contact[4] else "")
-        self.layout_principal.addWidget(self.email_input)
+        self.email_input.show()
 
-        # Birth Date
-        self.dateedit = QDateEdit()
-        self.dateedit.setCalendarPopup(True)
+        self.birthdate_dateedit.setCalendarPopup(True)
         if contact[5] and contact[5] != 0:
-            self.dateedit.setDate(datetime.datetime.strptime(contact[5], "%Y-%m-%d"))
-            self.birthdate_layout = QVBoxLayout()
-
-            self.layout_principal.addLayout(self.birthdate_layout)
-
-            self.birthdate_layout.addWidget(self.dateedit)
-
-            self.remove_birthdate_button = QPushButton("Remove Birth Date")
-            self.remove_birthdate_button.clicked.connect(self.remove_birthdate)
-            self.birthdate_layout.addWidget(self.remove_birthdate_button)
-
-            self.add_birthdate_button = QPushButton("Add Birth Date")
-            self.add_birthdate_button.clicked.connect(self.add_birthdate)
+            self.birthdate_dateedit.setDate(datetime.datetime.strptime(contact[5], "%Y-%m-%d"))
+            self.changeVisibilityOfOptionalOption('birthdate', True)
         else:
-            self.birthdate_layout = QVBoxLayout()
+            self.changeVisibilityOfOptionalOption('birthdate', False)
 
-            self.layout_principal.addLayout(self.birthdate_layout)
+        self.notes_input.show()
+        self.notes_input.setText(contact[6])
 
-            self.remove_birthdate_button = QPushButton("Remove Birth Date")
-            self.remove_birthdate_button.clicked.connect(self.remove_birthdate)
+        self.save_changes_button.clicked.connect(lambda: self.saveContactChanges(contact_id))
+        self.save_changes_button.show()
 
-            self.add_birthdate_button = QPushButton("Add Birth Date")
-            self.add_birthdate_button.clicked.connect(self.add_birthdate)
-            self.birthdate_layout.addWidget(self.add_birthdate_button)
-
-        #Notes
-        self.text_box = QTextEdit()
-        self.text_box.setPlaceholderText("Notes")
-        self.text_box.setText(contact[6])
-        self.layout_principal.addWidget(self.text_box)
-
-        # Save Changes Button
-        self.save_changes_button = QPushButton("Save Changes")
-        self.save_changes_button.clicked.connect(lambda: self.save_contact_changes(contact_id))
-        self.layout_principal.addWidget(self.save_changes_button)
-
-        # Cancel Button
-        self.cancel_button = QPushButton("Cancel")
-        self.cancel_button.clicked.connect(self.load_contacts)
-        self.layout_principal.addWidget(self.cancel_button)
+        self.cancel_button.show()
     
-    def save_contact_changes(self, contact_id):
+    def saveContactChanges(self, contact_id):
 
         #Collect updated data
         firstname = self.firstname_input.text().strip()
-        name = self.name_input.text().strip()
+        name = self.lastname_input.text().strip()
         phone_number = self.phone_number_input.text().strip()
         email = self.email_input.text().strip()
-        birthdate = self.dateedit.date().toPyDate()
+        birthdate = self.birthdate_dateedit.date().toPyDate()
 
         #Validation
         if not firstname:
@@ -330,50 +322,31 @@ class ContactApp(QMainWindow):
             )
             self.conn.commit()
             QMessageBox.information(self, "Success", "Contact updated successfully!")
-            self.load_contacts()
+            self.loadContacts()
         except sqlite3.Error as e:
             QMessageBox.critical(self, "Database Error", f"Failed to update contact: {e}")
     
-    def delete_contact(self):
+    def deleteContact(self):
          pass
     
-    def load_contacts(self):
-         layout = self.layout_principal
-         self.clear_layout(layout)
-         self.contact_list = QListWidget()
-         self.contact_list.clear()
-         cursor = self.conn.cursor()
-         cursor.execute("SELECT * FROM contacts")
-         contacts = cursor.fetchall()
+    def loadContacts(self):
+        layout = self.layout_principal
+        hideAllWidgetLayout(layout)
+        self.contact_list.clear()
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM contacts")
+        contacts = cursor.fetchall()
 
-         for contact in contacts:
+        for contact in contacts:
             item_text = f"{contact[1]} {contact[2]}\n0{contact[3]}"
             item = QListWidgetItem(item_text)
             item.setData(32, contact[0])
             self.contact_list.addItem(item)
+
+        self.contact_list.show()
+        self.edit_contact_button.show()
+        self.new_contact_button.show()
         
-         self.layout_principal.addWidget(self.contact_list)
-
-         self.edit_contact_button = QPushButton("✏️ Edit Contact")
-         self.edit_contact_button.clicked.connect(self.edit_contact)
-         self.layout_principal.addWidget(self.edit_contact_button)
-
-         self.new_contact_button = QPushButton("➕ New Contact")
-         self.new_contact_button.clicked.connect(self.add_contact_menu)
-         self.layout_principal.addWidget(self.new_contact_button)
-
-
-    def clear_layout(self, cur_lay):
-        if cur_lay is not None:
-            while cur_lay.count():
-                item = cur_lay.takeAt(0)
-                widget = item.widget()
-                if widget is not None:
-                    widget.deleteLater()
-                else:
-                    self.clear_layout(item.layout())
-        
-
     def closeEvent(self, event):
             self.conn.close()
             event.accept()
