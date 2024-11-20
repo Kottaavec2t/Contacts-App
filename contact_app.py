@@ -45,12 +45,6 @@ def hideAllWidgetLayout(cur_lay):
             elif item.layout() is not None:
                 hideAllWidgetLayout(item.layout())
 
-
-# ===========================================================================================================
-#                                          MAIN CLASS
-# ===========================================================================================================
-
-
 class ContactApp(QMainWindow):
     
 
@@ -211,6 +205,8 @@ class ContactApp(QMainWindow):
             self.add_birthdate_button.setVisible(not visible)
 
     def addContact(self):
+        
+        # Collect data
         firstname = self.firstname_input.text()
         name = self.lastname_input.text()
         phone_number = self.phone_number_input.text().strip()
@@ -218,7 +214,7 @@ class ContactApp(QMainWindow):
         birthdate = None if not self.birthdate_dateedit.isVisible() else self.birthdate_dateedit.date().toPyDate()
         notes = self.notes_input.toPlainText()
 
-        #Validate fields
+        # Validate fields
         if not firstname:
             QMessageBox.warning(self, "Input Error", "First name is required.")
             return
@@ -227,37 +223,41 @@ class ContactApp(QMainWindow):
             QMessageBox.warning(self, "Input Error", "Invalid phone number format.")
             return
         
-        #Remove the birthdate if self.birthdate_dateedit() is'nt visible
+        # Remove the birthdate if self.birthdate_dateedit() is not visible
         birthdate = self.birthdate_dateedit.date().toPyDate()
         if not self.birthdate_dateedit.isVisible():
              birthdate = 0
 
-        
+        # Get, Add, Commit, Inform
         cursor = self.conn.cursor()
         cursor.execute("INSERT INTO contacts (firstname, name, phone_number, email, birthdate, notes) VALUES (?, ?, ?, ?, ?, ?)", 
                        (firstname, name, phone_number, email, birthdate, notes)
                        )
         self.conn.commit()
         QMessageBox.information(self, "Succes !", f"Succefully add {firstname} {name} to your contacts.")
+        
         self.firstname_input.clear()
         self.lastname_input.clear()
         self.phone_number_input.clear()
+        self.email_input.clear()
+        
         self.changeVisibilityOfOptionalOption('email', False)
         self.changeVisibilityOfOptionalOption('birthdate', False)
+        
         self.loadContacts()
     
     def editContact(self):
 
-        #Get the selected item
+        # Get the selected item
         item = self.contact_list.currentItem()
         if not item:
             QMessageBox.warning(self, "Edit Contact", "No contact selected!")
             return
 
-        #Retrieve the unique ID stored in the item
+        # Retrieve the unique ID stored in the item
         contact_id = item.data(32)
 
-        #Fetch the contact from the database using the ID
+        # Fetch the contact from the database using the ID
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM contacts WHERE id = ?", (contact_id,))
         contact = cursor.fetchone()
@@ -265,7 +265,7 @@ class ContactApp(QMainWindow):
             QMessageBox.critical(self, "Error", "Failed to find contact in the database!")
             return
 
-        #Clear main layout
+        # Update and show all inputs
         hideAllWidgetLayout(self.layout_principal)
 
         self.firstname_input.setText(contact[1])
@@ -279,7 +279,7 @@ class ContactApp(QMainWindow):
 
         self.email_input.setText(contact[4] if contact[4] else "")
         self.email_input.show()
-
+        
         self.birthdate_dateedit.setCalendarPopup(True)
         if contact[5] and contact[5] != 0:
             self.birthdate_dateedit.setDate(datetime.datetime.strptime(contact[5], "%Y-%m-%d"))
@@ -297,14 +297,14 @@ class ContactApp(QMainWindow):
     
     def saveContactChanges(self, contact_id):
 
-        #Collect updated data
+        # Collect updated data
         firstname = self.firstname_input.text().strip()
         name = self.lastname_input.text().strip()
         phone_number = self.phone_number_input.text().strip()
         email = self.email_input.text().strip()
         birthdate = self.birthdate_dateedit.date().toPyDate()
 
-        #Validation
+        # Validation
         if not firstname:
             QMessageBox.warning(self, "Input Error", "First name is required.")
             return
@@ -312,8 +312,8 @@ class ContactApp(QMainWindow):
         if not phone_number.isdigit() or len(phone_number) != 10 or phone_number[0] != '0':
             QMessageBox.warning(self, "Input Error", "Invalid phone number format.")
             return
-
-        #Update the database
+            
+        # Update the database
         try:
             cursor = self.conn.cursor()
             cursor.execute(
@@ -330,19 +330,23 @@ class ContactApp(QMainWindow):
          pass
     
     def loadContacts(self):
-        layout = self.layout_principal
-        hideAllWidgetLayout(layout)
+       
+        hideAllWidgetLayout(self.layout_principal)
         self.contact_list.clear()
+
+        # Get contacts from the database
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM contacts")
         contacts = cursor.fetchall()
 
+        # Add a new Item for every contact
         for contact in contacts:
             item_text = f"{contact[1]} {contact[2]}\n0{contact[3]}"
             item = QListWidgetItem(item_text)
             item.setData(32, contact[0])
             self.contact_list.addItem(item)
 
+        # Show widgets
         self.contact_list.show()
         self.edit_contact_button.show()
         self.new_contact_button.show()
