@@ -47,6 +47,7 @@ def hideAllWidgetLayout(cur_lay):
 
 class ContactApp(QMainWindow):
     
+# __intit__
 
     def __init__(self):
         super().__init__()
@@ -71,6 +72,7 @@ class ContactApp(QMainWindow):
 
         #------------------------Contact List------------------------
         self.contact_list = QListWidget()
+        self.contact_list.itemDoubleClicked.connect(self.displayContactInformations)
         self.layout_principal.addWidget(self.contact_list)
         self.contact_list.hide()
 
@@ -162,13 +164,15 @@ class ContactApp(QMainWindow):
         self.layout_principal.addWidget(self.cancel_button)
         self.cancel_button.hide()
 
+        #------------------------Informations Button------------------------
+        self.info_button = QPushButton("ℹ️ Information")
+        self.info_button.clicked.connect(self.displayContactInformations)
+        self.layout_principal.addWidget(self.info_button)
+        self.info_button.hide()
+
         self.loadContacts()
 
-
-    # ===========================================================================================================
-    #                                               FONCTIONS
-    # ===========================================================================================================
-
+# Functions
 
     def addContactMenu(self):
         
@@ -277,8 +281,11 @@ class ContactApp(QMainWindow):
         self.phone_number_input.setText(f"0{str(contact[3])}")
         self.phone_number_input.show()
 
-        self.email_input.setText(contact[4] if contact[4] else "")
-        self.email_input.show()
+        if contact[4]:
+            self.email_input.setText(contact[4] if contact[4] else "")
+            self.changeVisibilityOfOptionalOption('email', True)
+        else:
+            self.changeVisibilityOfOptionalOption('email', False)
         
         self.birthdate_dateedit.setCalendarPopup(True)
         if contact[5] and contact[5] != 0:
@@ -351,6 +358,17 @@ class ContactApp(QMainWindow):
         self.edit_contact_button.show()
         self.new_contact_button.show()
         
+    def displayContactInformations(self):
+        
+        # Clear the layout
+        hideAllWidgetLayout(self.layout_principal)
+
+        
+
+
+
+# Close
+
     def closeEvent(self, event):
             self.conn.close()
             event.accept()
