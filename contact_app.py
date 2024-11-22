@@ -52,27 +52,24 @@ class ContactApp(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.conn = createConnection()
+        # Set window size and title
         self.setWindowTitle("Contacts")
         self.setGeometry(300, 200, 400, 600)
         self.setMaximumSize(400, 600)
         self.setMinimumSize(400, 600)
 
-        self.layout_principal = QVBoxLayout()
-
+        # Container
         container = QWidget()
         container.setLayout(self.layout_principal)
         self.setCentralWidget(container)
 
-        #global variable
+        # Global variable
+        self.layout_principal = QVBoxLayout()
+        self.conn = createConnection()
         self.current_item = None
         self.orgiginal_text = None
 
-
-        # ===========================================================================================================
-        #              CREATE ALL THE WIDGETS AND HIDE THEM (BE SURE THERE ARE IN THE ORDER YOU WANT)
-        # ===========================================================================================================
-        
+        # Initialization of all Widgets        
 
         #------------------------Contact List------------------------
         self.contact_list = QListWidget()
