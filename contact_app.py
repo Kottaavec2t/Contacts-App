@@ -64,6 +64,10 @@ class ContactApp(QMainWindow):
         container.setLayout(self.layout_principal)
         self.setCentralWidget(container)
 
+        #global variable
+        self.current_item = None
+        self.orgiginal_text = None
+
 
         # ===========================================================================================================
         #              CREATE ALL THE WIDGETS AND HIDE THEM (BE SURE THERE ARE IN THE ORDER YOU WANT)
@@ -72,7 +76,7 @@ class ContactApp(QMainWindow):
 
         #------------------------Contact List------------------------
         self.contact_list = QListWidget()
-        self.contact_list.itemDoubleClicked.connect(self.displayContactInformations)
+        self.contact_list.itemClicked.connect(self.displayContactInformations)
         self.layout_principal.addWidget(self.contact_list)
         self.contact_list.hide()
 
@@ -114,6 +118,7 @@ class ContactApp(QMainWindow):
 
         #------------------------Birthdate Input------------------------
         self.birthdate_dateedit = QDateEdit()
+        self.birthdate_dateedit.setCalendarPopup(True)
         self.layout_principal.addWidget(self.birthdate_dateedit)
         self.birthdate_dateedit.hide()
 
@@ -164,12 +169,6 @@ class ContactApp(QMainWindow):
         self.layout_principal.addWidget(self.cancel_button)
         self.cancel_button.hide()
 
-        #------------------------Informations Button------------------------
-        self.info_button = QPushButton("ℹ️ Information")
-        self.info_button.clicked.connect(self.displayContactInformations)
-        self.layout_principal.addWidget(self.info_button)
-        self.info_button.hide()
-
         self.loadContacts()
 
 # Functions
@@ -188,25 +187,6 @@ class ContactApp(QMainWindow):
         self.new_contact_button.hide()
         self.edit_contact_button.hide()
         self.contact_list.hide()
-
-    def changeVisibilityOfOptionalOption(self, field_type, visible):
-        '''
-        Function to change the visiblility of the field type define in input.
-
-        :param: `field_type`, str, 'email' or 'birthdate' depend of the option you want to change the visibility.
-        :param: `visible`, bool, True if you want to see the input or False if not.
-        :return: `None`
-        '''
-
-        if field_type == 'email':
-            self.email_input.setVisible(visible)
-            self.remove_email_button.setVisible(visible)
-            self.add_email_button.setVisible(not visible)
-
-        if field_type == 'birthdate':
-            self.birthdate_dateedit.setVisible(visible)
-            self.remove_birthdate_button.setVisible(visible)
-            self.add_birthdate_button.setVisible(not visible)
 
     def addContact(self):
         
@@ -249,7 +229,32 @@ class ContactApp(QMainWindow):
         self.changeVisibilityOfOptionalOption('birthdate', False)
         
         self.loadContacts()
+
+    def deleteContact(self):
+         pass
     
+    def loadContacts(self):
+       
+        hideAllWidgetLayout(self.layout_principal)
+        self.contact_list.clear()
+
+        # Get contacts from the database
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM contacts")
+        contacts = cursor.fetchall()
+
+        # Add a new Item for every contact
+        for contact in contacts:
+            item_text = f"{contact[1]} {contact[2]}"
+            item = QListWidgetItem(item_text)
+            item.setData(32, contact[0])
+            self.contact_list.addItem(item)
+
+        # Show widgets
+        self.contact_list.show()
+        self.edit_contact_button.show()
+        self.new_contact_button.show()
+             
     def editContact(self):
 
         # Get the selected item
@@ -301,7 +306,7 @@ class ContactApp(QMainWindow):
         self.save_changes_button.show()
 
         self.cancel_button.show()
-    
+
     def saveContactChanges(self, contact_id):
 
         # Collect updated data
@@ -333,39 +338,58 @@ class ContactApp(QMainWindow):
         except sqlite3.Error as e:
             QMessageBox.critical(self, "Database Error", f"Failed to update contact: {e}")
     
-    def deleteContact(self):
-         pass
-    
-    def loadContacts(self):
-       
-        hideAllWidgetLayout(self.layout_principal)
-        self.contact_list.clear()
-
-        # Get contacts from the database
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT * FROM contacts")
-        contacts = cursor.fetchall()
-
-        # Add a new Item for every contact
-        for contact in contacts:
-            item_text = f"{contact[1]} {contact[2]}\n0{contact[3]}"
-            item = QListWidgetItem(item_text)
-            item.setData(32, contact[0])
-            self.contact_list.addItem(item)
-
-        # Show widgets
-        self.contact_list.show()
-        self.edit_contact_button.show()
-        self.new_contact_button.show()
-        
-    def displayContactInformations(self):
+    def displayContactInformations(self, item):
         
         # Clear the layout
-        hideAllWidgetLayout(self.layout_principal)
 
+        if self.current_item and self.current_item != item:
+            self.current_item.setText(self.orgiginal_text)
+
+        if item != self.current_item:
+            contact_id = item.data(32)
+
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT * FROM contacts WHERE id=?", (contact_id,))
+            contact = cursor.fetchone()
+            if not contact:
+                QMessageBox.critical(self, "Error", "Failed to find contact in the database!")
+                return
+            
+            item_text = f"{contact[1]} {contact[2]}\nPhone Number: 0{contact[3]}"
+
+            if contact[4] and contact[4] != "":
+                item_text += f"\nEmail: {contact[4]}"
+            else:
+                item_text += ""
+            
+            if contact[5] and contact[5] != "0":
+                item_text += f"\nBirthdate: {contact[5]}"
+            else:
+                item_text += ""
+
+            self.orgiginal_text = item.text()
+            item.setText(item_text)
         
+        self.current_item = item
+   
+    def changeVisibilityOfOptionalOption(self, field_type, visible):
+        '''
+        Function to change the visiblility of the field type define in input.
 
+        :param: `field_type`, str, 'email' or 'birthdate' depend of the option you want to change the visibility.
+        :param: `visible`, bool, True if you want to see the input or False if not.
+        :return: `None`
+        '''
 
+        if field_type == 'email':
+            self.email_input.setVisible(visible)
+            self.remove_email_button.setVisible(visible)
+            self.add_email_button.setVisible(not visible)
+
+        if field_type == 'birthdate':
+            self.birthdate_dateedit.setVisible(visible)
+            self.remove_birthdate_button.setVisible(visible)
+            self.add_birthdate_button.setVisible(not visible)
 
 # Close
 
