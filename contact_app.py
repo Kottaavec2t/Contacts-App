@@ -59,12 +59,12 @@ class ContactApp(QMainWindow):
         self.setMinimumSize(400, 600)
 
         # Container
+        self.layout_principal = QVBoxLayout()
         container = QWidget()
         container.setLayout(self.layout_principal)
         self.setCentralWidget(container)
 
         # Global variable
-        self.layout_principal = QVBoxLayout()
         self.conn = createConnection()
         self.current_item = None
         self.orgiginal_text = None
@@ -339,7 +339,7 @@ class ContactApp(QMainWindow):
         
         # Clear the layout
 
-        if self.current_item and self.current_item != item:
+        if self.current_item and self.current_item != item and self.orgiginal_text:
             self.current_item.setText(self.orgiginal_text)
 
         if item != self.current_item:
